@@ -1,0 +1,22 @@
+{
+  "name": "hacker-news-lite",
+  "version": "0.0.1",
+  "description": "FullStack (Node, Express, Mocha and Chai) w/ RESTful API Challeng",
+  "license": "MIT",
+  "repository": {},
+  "scripts": {
+    "test": "mocha --exit",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.16.2",
+    "morgan": "^1.9.0",
+    "nodemon": "^1.14.12"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "chai-http": "^3.0.0",
+    "chai-spies": "^1.0.0",
+    "mocha": "^5.0.0"
+  }
+}
