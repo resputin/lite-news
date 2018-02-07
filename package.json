@@ -6,7 +6,7 @@
   "repository": {},
   "scripts": {
     "test": "mocha --exit",
-    "start": "node server.js"
+    "start": "nodemon server.js"
   },
   "dependencies": {
     "express": "^4.16.2",
