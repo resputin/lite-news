@@ -150,6 +150,10 @@ const hacky = (function(){
   function handleNextPageClick() {
     $('.js-next-page').on('click', event => {
       store.page++;
+      $('.js-prev-page').prop('disabled', false);
+      if (store.page * 30 > store.storyArray.length) {
+        $('.js-next-page').prop('disabled', true);
+      }
       newPageUpdate();
     });
   }
@@ -157,6 +161,10 @@ const hacky = (function(){
   function handlePreviousPageClick() {
     $('.js-prev-page').on('click', event => {
       store.page--;
+      $('.js-next-page').prop('disabled', false);
+      if (store.page === 1) {
+        $('.js-prev-page').prop('disabled', true);
+      }
       newPageUpdate();
     });
   }
