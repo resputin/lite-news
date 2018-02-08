@@ -100,7 +100,6 @@ const hacky = (function(){
     store.storyArray = response;
     clearStories();
     response.forEach((itemId, index) => {
-      console.log(itemId);
       if (!store.stories2[itemId]) {
         store.stories2[itemId] = {};
         const item = store.stories2[itemId];
