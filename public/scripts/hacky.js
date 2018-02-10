@@ -97,26 +97,40 @@ const hacky = (function(){
   }
 
   function populateStore2(response) {
+    if (localStorage.stories === undefined) {
+      localStorage['stories'] = JSON.stringify({});
+    }
     store.storyArray = response;
+    const cachedStories = JSON.parse(localStorage.stories);
+    store.stories2 = JSON.parse(localStorage.stories);
     clearStories();
     response.forEach((itemId, index) => {
-      if (!store.stories2[itemId]) {
+      
+      if (!cachedStories[itemId]) {
+        console.log('Item object', cachedStories[itemId]);
         store.stories2[itemId] = {};
         const item = store.stories2[itemId];
-        createNewItemPromise(itemId).then((response) => {
-          item.body = response;
-          item.lastAccessed = Date.now();
-          item.html = generateListItem(response);
-          if (index < 30){
-            addStoryToPage(item.html, index);
-          }
-        }); 
+        if (index < 30){
+          createNewItemPromise(itemId).then((response) => {
+            item.body = response;
+            item.lastAccessed = Date.now();
+            item.html = generateListItem(response);
+            store.stories2[itemId] = item;
+            localStorage['stories'] = JSON.stringify(store.stories2);
+            if (index < 30){
+              addStoryToPage(item.html, index);
+            }
+        
+          });
+        } 
         
       } 
       if (index < 30 && store.stories2[itemId].html !== undefined) {
         addStoryToPage(store.stories2[itemId].html, index);
       }
-    });
+
+      
+    }); 
   }
 
   // function populateStore(response) {
