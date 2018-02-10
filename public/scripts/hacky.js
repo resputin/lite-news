@@ -107,22 +107,20 @@ const hacky = (function(){
     response.forEach((itemId, index) => {
       
       if (!cachedStories[itemId]) {
-        console.log('Item object', cachedStories[itemId]);
         store.stories2[itemId] = {};
         const item = store.stories2[itemId];
-        if (index < 30){
-          createNewItemPromise(itemId).then((response) => {
-            item.body = response;
-            item.lastAccessed = Date.now();
-            item.html = generateListItem(response);
-            store.stories2[itemId] = item;
-            localStorage['stories'] = JSON.stringify(store.stories2);
-            if (index < 30){
-              addStoryToPage(item.html, index);
-            }
+        createNewItemPromise(itemId).then((response) => {
+          item.body = response;
+          item.lastAccessed = Date.now();
+          item.html = generateListItem(response);
+          store.stories2[itemId] = item;
+          localStorage['stories'] = JSON.stringify(store.stories2);
+          if (index < 30){
+            addStoryToPage(item.html, index);
+          }
         
-          });
-        } 
+        });
+         
         
       } 
       if (index < 30 && store.stories2[itemId].html !== undefined) {
