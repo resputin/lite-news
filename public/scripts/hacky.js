@@ -1,55 +1,34 @@
 /* global store */
 'use strict';
 
-const hacky = (function(){
+const hacky = (function() {
   function handleTopClick() {
     $('.tablink-top').on('click', () => {
-      resetPage();
-      grabTop();
+      grab('https://hacker-news.firebaseio.com/v0/topstories.json');
     });
   }
 
   function handleBestClick() {
     $('.tablink-best').on('click', () => {
-      resetPage();
-      $.get('https://hacker-news.firebaseio.com/v0/beststories.json').then(
-        response => {
-          populateStore2(response);
-        }
-      );
+      grab('https://hacker-news.firebaseio.com/v0/beststories.json');
     });
   }
 
   function handleShowClick() {
     $('.tablink-show').on('click', () => {
-      resetPage();
-      $.get('https://hacker-news.firebaseio.com/v0/showstories.json').then(
-        response => {
-          populateStore2(response);
-        }
-      );
+      grab('https://hacker-news.firebaseio.com/v0/showstories.json');
     });
   }
 
   function handleAskClick() {
     $('.tablink-ask').on('click', () => {
-      resetPage();
-      $.get('https://hacker-news.firebaseio.com/v0/askstories.json').then(
-        response => {
-          populateStore2(response);
-        }
-      );
+      grab('https://hacker-news.firebaseio.com/v0/askstories.json');
     });
   }
 
   function handleJobsClick() {
     $('.tablink-jobs').on('click', () => {
-      resetPage();
-      $.get('https://hacker-news.firebaseio.com/v0/jobstories.json').then(
-        response => {
-          populateStore2(response);
-        }
-      );
+      grab('https://hacker-news.firebaseio.com/v0/jobstories.json');
     });
   }
 
@@ -59,8 +38,9 @@ const hacky = (function(){
     newPageUpdate();
   }
 
-  function grabTop() {
-    $.get('https://hacker-news.firebaseio.com/v0/topstories.json').then(
+  function grab(address) {
+    resetPage();
+    $.get(address).then(
       response => {
         populateStore2(response);
       }
@@ -89,37 +69,44 @@ const hacky = (function(){
     clearStories();
     store.currentStoryHTML = [];
     response.forEach((itemId, index) => {
-      
-      if (!cachedStories[itemId] && index < 30 * (store.page + 1) && index > store.page * 30 - 31) {
+      if (
+        !cachedStories[itemId] &&
+        index < 30 * (store.page + 1) &&
+        index > store.page * 30 - 31
+      ) {
         store.stories2[itemId] = {};
         const item = store.stories2[itemId];
-        createNewItemPromise(itemId).then((response) => {
+        createNewItemPromise(itemId).then(response => {
           item.body = response;
           item.lastAccessed = Date.now();
           item.html = generateListItem(response);
           store.stories2[itemId] = item;
           localStorage['stories'] = JSON.stringify(store.stories2);
-          if (index < 30 * store.page){
+          if (index < 30 * store.page) {
             addStoryToPage(item.html, index);
           }
         });
-         
-        
-      } 
-      if (index < 30 * store.page && index > store.page * 30 - 31 && store.stories2[itemId].html !== undefined) {
+      }
+      if (
+        index < 30 * store.page &&
+        index > store.page * 30 - 31 &&
+        store.stories2[itemId].html !== undefined
+      ) {
         addStoryToPage(store.stories2[itemId].html, index);
       }
-
-      
-    }); 
+    });
   }
 
   function addStoryToPage(storyHTML, index) {
-    store.currentStoryHTML.splice(index % 30, 0, `<li value="${index + 1}">${storyHTML}</li>`);
+    store.currentStoryHTML.splice(
+      index % 30,
+      0,
+      `<li value="${index + 1}">${storyHTML}</li>`
+    );
     $('.js-content').html(store.currentStoryHTML);
   }
 
-  function generateListItem(story){
+  function generateListItem(story) {
     return `
       ${story.score} <a href="${story.url}" target="_blank">${story.title}</a>
       <p>${story.descendants} comments Posted by: ${story.by}</p>
@@ -171,6 +158,6 @@ const hacky = (function(){
 
   return {
     bindEventListeners,
-    grabTop
+    grab
   };
 })();

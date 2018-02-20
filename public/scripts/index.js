@@ -2,6 +2,6 @@
 'use strict';
 
 $(document).ready(function(){
-  hacky.grabTop();
+  hacky.grab('https://hacker-news.firebaseio.com/v0/topstories.json');
   hacky.bindEventListeners();
 });
