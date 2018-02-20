@@ -6,6 +6,7 @@ const store = (function(){
     stories2: {},
     currentStory: false,
     page: 1,
-    storyArray: []
+    storyArray: [],
+    currentStoryHTML: []
   };
 })();

@@ -3,14 +3,14 @@
 
 const hacky = (function(){
   function handleTopClick() {
-    $('.tablink-top').on('click', event => {
+    $('.tablink-top').on('click', () => {
       resetPage();
       grabTop();
     });
   }
 
   function handleBestClick() {
-    $('.tablink-best').on('click', event => {
+    $('.tablink-best').on('click', () => {
       resetPage();
       $.get('https://hacker-news.firebaseio.com/v0/beststories.json').then(
         response => {
@@ -21,7 +21,7 @@ const hacky = (function(){
   }
 
   function handleShowClick() {
-    $('.tablink-show').on('click', event => {
+    $('.tablink-show').on('click', () => {
       resetPage();
       $.get('https://hacker-news.firebaseio.com/v0/showstories.json').then(
         response => {
@@ -32,7 +32,7 @@ const hacky = (function(){
   }
 
   function handleAskClick() {
-    $('.tablink-ask').on('click', event => {
+    $('.tablink-ask').on('click', () => {
       resetPage();
       $.get('https://hacker-news.firebaseio.com/v0/askstories.json').then(
         response => {
@@ -43,7 +43,7 @@ const hacky = (function(){
   }
 
   function handleJobsClick() {
-    $('.tablink-jobs').on('click', event => {
+    $('.tablink-jobs').on('click', () => {
       resetPage();
       $.get('https://hacker-news.firebaseio.com/v0/jobstories.json').then(
         response => {
@@ -54,14 +54,15 @@ const hacky = (function(){
   }
 
   function resetPage() {
+    clearStories();
     store.page = 1;
+    newPageUpdate();
   }
 
   function grabTop() {
     $.get('https://hacker-news.firebaseio.com/v0/topstories.json').then(
       response => {
         populateStore2(response);
-        // populateStore(response);
       }
     );
   }
@@ -78,35 +79,18 @@ const hacky = (function(){
     });
   }
 
-  function populateStore(response) {
-    const promiseArray = [];
-    if (store.stories.length > 1) {
-      store.stories.splice(0, store.stories.length);
-      clearStories();
-    }
-    response.forEach(itemID => {
-      promiseArray.push(createNewItemPromise(itemID));
-    });
-
-    promiseArray.forEach(promise => promise.then(result => {
-      store.stories.push(result);
-      if (store.stories.length <= 30) {
-        addStoryToPage(store.stories.length - 1);
-      }
-    }));
-  }
-
   function populateStore2(response) {
     if (localStorage.stories === undefined) {
       localStorage['stories'] = JSON.stringify({});
     }
     store.storyArray = response;
     const cachedStories = JSON.parse(localStorage.stories);
-    store.stories2 = JSON.parse(localStorage.stories);
+    store.stories2 = cachedStories;
     clearStories();
+    store.currentStoryHTML = [];
     response.forEach((itemId, index) => {
       
-      if (!cachedStories[itemId]) {
+      if (!cachedStories[itemId] && index < 30 * (store.page + 1) && index > store.page * 30 - 31) {
         store.stories2[itemId] = {};
         const item = store.stories2[itemId];
         createNewItemPromise(itemId).then((response) => {
@@ -115,15 +99,14 @@ const hacky = (function(){
           item.html = generateListItem(response);
           store.stories2[itemId] = item;
           localStorage['stories'] = JSON.stringify(store.stories2);
-          if (index < 30){
+          if (index < 30 * store.page){
             addStoryToPage(item.html, index);
           }
-        
         });
          
         
       } 
-      if (index < 30 && store.stories2[itemId].html !== undefined) {
+      if (index < 30 * store.page && index > store.page * 30 - 31 && store.stories2[itemId].html !== undefined) {
         addStoryToPage(store.stories2[itemId].html, index);
       }
 
@@ -131,24 +114,9 @@ const hacky = (function(){
     }); 
   }
 
-  // function populateStore(response) {
-  //   const promiseArray = [];
-  //   if (store.stories.length > 1) {
-  //     store.stories.splice(0, store.stories.length);
-  //     clearStories();
-  //   }
-  //   response.forEach(itemID => {
-  //     createNewItemPromise(itemID).then(result => {
-  //       store.stories.push(result);
-  //       if (store.stories.length < 30) {
-  //         addStoryToPage(store.stories.length - 1);
-  //       }
-  //     });
-  //   });
-  // }
-
   function addStoryToPage(storyHTML, index) {
-    $('.js-content').append(`<li value="${index + 1}">${storyHTML}</li>`);
+    store.currentStoryHTML.splice(index % 30, 0, `<li value="${index + 1}">${storyHTML}</li>`);
+    $('.js-content').html(store.currentStoryHTML);
   }
 
   function generateListItem(story){
@@ -159,7 +127,7 @@ const hacky = (function(){
   }
 
   function handleNextPageClick() {
-    $('.js-next-page').on('click', event => {
+    $('.js-next-page').on('click', () => {
       store.page++;
       $('.js-prev-page').prop('disabled', false);
       if (store.page * 30 > store.storyArray.length) {
@@ -170,7 +138,7 @@ const hacky = (function(){
   }
 
   function handlePreviousPageClick() {
-    $('.js-prev-page').on('click', event => {
+    $('.js-prev-page').on('click', () => {
       store.page--;
       $('.js-next-page').prop('disabled', false);
       if (store.page === 1) {
@@ -183,9 +151,8 @@ const hacky = (function(){
   function newPageUpdate() {
     $('.page-number').html(`Page ${store.page}`);
     clearStories();
-    for (let i = store.page * 30 - 30; i < store.page * 30; i++) {
-      addStoryToPage(store.stories2[store.storyArray[i]].html, i);
-    }
+    store.currentStoryHTML = [];
+    populateStore2(store.storyArray);
   }
 
   function clearStories() {
