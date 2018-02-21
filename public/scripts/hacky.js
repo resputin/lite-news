@@ -42,7 +42,7 @@ const hacky = (function() {
     resetPage();
     $.get(address).then(
       response => {
-        populateStore2(response);
+        populateStore(response);
       }
     );
   }
@@ -59,40 +59,31 @@ const hacky = (function() {
     });
   }
 
-  function populateStore2(response) {
+  function populateStore(response) {
     if (localStorage.stories === undefined) {
       localStorage['stories'] = JSON.stringify({});
     }
     store.storyArray = response;
     const cachedStories = JSON.parse(localStorage.stories);
-    store.stories2 = cachedStories;
     clearStories();
     store.currentStoryHTML = [];
     response.forEach((itemId, index) => {
-      if (
-        !cachedStories[itemId] &&
-        index < 30 * (store.page + 1) &&
-        index > store.page * 30 - 31
-      ) {
-        store.stories2[itemId] = {};
-        const item = store.stories2[itemId];
-        createNewItemPromise(itemId).then(response => {
-          item.body = response;
-          item.lastAccessed = Date.now();
-          item.html = generateListItem(response);
-          store.stories2[itemId] = item;
-          localStorage['stories'] = JSON.stringify(store.stories2);
-          if (index < 30 * store.page) {
-            addStoryToPage(item.html, index);
-          }
-        });
-      }
-      if (
-        index < 30 * store.page &&
-        index > store.page * 30 - 31 &&
-        store.stories2[itemId].html !== undefined
-      ) {
-        addStoryToPage(store.stories2[itemId].html, index);
+      if (index < 30 * (store.page + 1) && index > (store.page * 30) - 31) {
+        if (!cachedStories[itemId]) {
+          cachedStories[itemId] = {};
+          const item = cachedStories[itemId];
+          createNewItemPromise(itemId).then(response => {
+            item.body = response;
+            item.lastAccessed = Date.now();
+            item.html = generateListItem(response);
+            localStorage['stories'] = JSON.stringify(cachedStories);
+            if (index < 30 * store.page) {
+              addStoryToPage(item.html, index);
+            } 
+          });
+        } else if (index < 30 * store.page) {
+          addStoryToPage(cachedStories[itemId].html, index);
+        }
       }
     });
   }
@@ -139,7 +130,7 @@ const hacky = (function() {
     $('.page-number').html(`Page ${store.page}`);
     clearStories();
     store.currentStoryHTML = [];
-    populateStore2(store.storyArray);
+    populateStore(store.storyArray);
   }
 
   function clearStories() {
