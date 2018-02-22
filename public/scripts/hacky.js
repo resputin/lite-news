@@ -1,8 +1,6 @@
 /* global store */
 'use strict';
 
-const uuid = require('uuid/v1');
-
 const hacky = (function() {
   function handleTopClick() {
     $('.tablink-top').on('click', () => {
@@ -40,10 +38,17 @@ const hacky = (function() {
     newPageUpdate();
   }
 
+  // function grab(address) {
+  //   resetPage();
+  //   $.get(address).then(response => {
+  //     populateStore(response);
+  //   });
+  // }
+
   function grab(address) {
     resetPage();
     $.get(address).then(response => {
-      populateStore(response);
+      populateComponents(response);
     });
   }
 
@@ -104,6 +109,13 @@ const hacky = (function() {
     `;
   }
 
+  function guidGenerator() {
+    var S4 = function() {
+      return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+    };
+    return S4() + S4() + '-' + S4() + '-' + S4() + '-' + S4() + '-' + S4() + S4() + S4();
+  }
+
   class Component {
     constructor(htmlContent, parent, children = {}) {
       this.htmlContent = htmlContent;
@@ -128,16 +140,17 @@ const hacky = (function() {
     }
     const cachedComponents = JSON.parse(localStorage.components);
     response.forEach((story, index) => {
-      if ( !cachedComponents[story] ) {
-        createNewItemPromise(story)
-          .then(response => {
-            const contentHTML = generateListItem(response);
-            const contentId = uuid();
-            cachedComponents[contentId] = new Component(contentHTML, `${story}`);
-            const storyHTML = `<li value="${index + 1}" id="${story}"></li>`;
-            cachedComponents[story] = new Component(storyHTML, 'js-story-list', {contentId: cachedComponents[contentId]});
-            cachedComponents[story].render();
+      if (!cachedComponents[story] && index < 30 ) {
+        createNewItemPromise(story).then(response => {
+          const contentHTML = generateListItem(response);
+          const contentId = guidGenerator();
+          cachedComponents[contentId] = new Component(contentHTML, `${story}`);
+          const storyHTML = `<li value="${index + 1}" id="${story}"></li>`;
+          cachedComponents[story] = new Component(storyHTML, 'js-story-list', {
+            contentId: cachedComponents[contentId]
           });
+          cachedComponents[story].render();
+        });
       }
     });
   }
