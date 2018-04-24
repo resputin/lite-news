@@ -1,7 +1,7 @@
 /* global store */
 'use strict';
 
-const hacky = (function() {
+const main = (function() {
   function handleTopClick() {
     $('.tablink-top').on('click', () => {
       grab('https://hacker-news.firebaseio.com/v0/topstories.json');
@@ -37,13 +37,6 @@ const hacky = (function() {
     store.page = 1;
     newPageUpdate();
   }
-
-  // function grab(address) {
-  //   resetPage();
-  //   $.get(address).then(response => {
-  //     populateStore(response);
-  //   });
-  // }
 
   function grab(address) {
     resetPage();
@@ -113,7 +106,20 @@ const hacky = (function() {
     var S4 = function() {
       return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
     };
-    return S4() + S4() + '-' + S4() + '-' + S4() + '-' + S4() + '-' + S4() + S4() + S4();
+    return (
+      S4() +
+      S4() +
+      '-' +
+      S4() +
+      '-' +
+      S4() +
+      '-' +
+      S4() +
+      '-' +
+      S4() +
+      S4() +
+      S4()
+    );
   }
 
   class Component {
@@ -122,10 +128,14 @@ const hacky = (function() {
       this.shouldRender = true;
       this.parent = parent;
       this.children = children;
+      this.dateAccessed = Date.now();
+      this.onDOM = false;
     }
 
     render() {
       $(`#${this.parent}`).append(this.htmlContent);
+      this.shouldRender = false;
+      this.onDom = true;
       if (this.children) {
         for (const child in this.children) {
           this.children[child].render();
@@ -139,18 +149,29 @@ const hacky = (function() {
       localStorage['components'] = JSON.stringify({});
     }
     const cachedComponents = JSON.parse(localStorage.components);
-    response.forEach((story, index) => {
-      if (!cachedComponents[story] && index < 30 ) {
-        createNewItemPromise(story).then(response => {
+    response.forEach((storyId, index) => {
+      if (!cachedComponents[storyId] && index < 30) {
+        createNewItemPromise(storyId).then(response => {
           const contentHTML = generateListItem(response);
           const contentId = guidGenerator();
-          cachedComponents[contentId] = new Component(contentHTML, `${story}`);
-          const storyHTML = `<li value="${index + 1}" id="${story}"></li>`;
-          cachedComponents[story] = new Component(storyHTML, 'js-story-list', {
-            contentId: cachedComponents[contentId]
-          });
-          cachedComponents[story].render();
+          cachedComponents[contentId] = new Component(contentHTML, contentId);
+          const storyHTML = $('<li>', {value: index + 1, id: storyId});
+          console.log('STORY HTML', storyHTML);
+          cachedComponents[storyId] = new Component(
+            storyHTML,
+            'js-story-list',
+            {
+              contentId: cachedComponents[contentId]
+            }
+          );
+          cachedComponents[storyId].render();
+          console.log(cachedComponents[storyId]);
+          localStorage['components'] = JSON.stringify(cachedComponents);
         });
+      } else if (!cachedComponents[storyId].onDom) {
+        console.log(cachedComponents[storyId]);
+        cachedComponents[storyId].render();
+        localStorage['components'] = JSON.stringify(cachedComponents);
       }
     });
   }
@@ -188,6 +209,16 @@ const hacky = (function() {
     $('.js-content').html('');
   }
 
+  function clearDom() {
+    if (localStorage['components']) {
+      const cachedComponents = JSON.parse(localStorage['components']);
+      for (let component in cachedComponents) {
+        cachedComponents[component].onDom = false;
+      }
+      localStorage['components'] = JSON.stringify(cachedComponents);
+    }
+  }
+
   function bindEventListeners() {
     handleTopClick();
     handleBestClick();
@@ -199,6 +230,7 @@ const hacky = (function() {
   }
 
   return {
+    clearDom,
     bindEventListeners,
     grab
   };

@@ -1,7 +1,8 @@
-/* global hacky*/
+/* global main*/
 'use strict';
 
 $(document).ready(function(){
-  hacky.grab('https://hacker-news.firebaseio.com/v0/topstories.json');
-  hacky.bindEventListeners();
+  main.clearDom();
+  main.grab('https://hacker-news.firebaseio.com/v0/topstories.json');
+  main.bindEventListeners();
 });
