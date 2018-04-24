@@ -38,13 +38,18 @@ const hacky = (function() {
     newPageUpdate();
   }
 
+  // function grab(address) {
+  //   resetPage();
+  //   $.get(address).then(response => {
+  //     populateStore(response);
+  //   });
+  // }
+
   function grab(address) {
     resetPage();
-    $.get(address).then(
-      response => {
-        populateStore(response);
-      }
-    );
+    $.get(address).then(response => {
+      populateComponents(response);
+    });
   }
 
   function createNewItemPromise(itemID) {
@@ -68,7 +73,7 @@ const hacky = (function() {
     clearStories();
     store.currentStoryHTML = [];
     response.forEach((itemId, index) => {
-      if (index < 30 * (store.page + 1) && index > (store.page * 30) - 31) {
+      if (index < 30 * (store.page + 1) && index > store.page * 30 - 31) {
         if (!cachedStories[itemId]) {
           cachedStories[itemId] = {};
           const item = cachedStories[itemId];
@@ -79,7 +84,7 @@ const hacky = (function() {
             localStorage['stories'] = JSON.stringify(cachedStories);
             if (index < 30 * store.page) {
               addStoryToPage(item.html, index);
-            } 
+            }
           });
         } else if (index < 30 * store.page) {
           addStoryToPage(cachedStories[itemId].html, index);
@@ -102,6 +107,52 @@ const hacky = (function() {
       ${story.score} <a href="${story.url}" target="_blank">${story.title}</a>
       <p>${story.descendants} comments Posted by: ${story.by}</p>
     `;
+  }
+
+  function guidGenerator() {
+    var S4 = function() {
+      return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+    };
+    return S4() + S4() + '-' + S4() + '-' + S4() + '-' + S4() + '-' + S4() + S4() + S4();
+  }
+
+  class Component {
+    constructor(htmlContent, parent, children = {}) {
+      this.htmlContent = htmlContent;
+      this.shouldRender = true;
+      this.parent = parent;
+      this.children = children;
+    }
+
+    render() {
+      $(`#${this.parent}`).append(this.htmlContent);
+      if (this.children) {
+        for (const child in this.children) {
+          this.children[child].render();
+        }
+      }
+    }
+  }
+
+  function populateComponents(response) {
+    if (!localStorage['components']) {
+      localStorage['components'] = JSON.stringify({});
+    }
+    const cachedComponents = JSON.parse(localStorage.components);
+    response.forEach((story, index) => {
+      if (!cachedComponents[story] && index < 30 ) {
+        createNewItemPromise(story).then(response => {
+          const contentHTML = generateListItem(response);
+          const contentId = guidGenerator();
+          cachedComponents[contentId] = new Component(contentHTML, `${story}`);
+          const storyHTML = `<li value="${index + 1}" id="${story}"></li>`;
+          cachedComponents[story] = new Component(storyHTML, 'js-story-list', {
+            contentId: cachedComponents[contentId]
+          });
+          cachedComponents[story].render();
+        });
+      }
+    });
   }
 
   function handleNextPageClick() {
