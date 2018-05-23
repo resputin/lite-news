@@ -1,5 +1,7 @@
 # Hacker News Lite
 
+<https://hn.nielsendb.com>
+
 A lightweight client for hacker news because there is no good free app for my phone.
 
 This project was mainly built to understand some of the fundamental reasons why React was built. Through this project I learned about the virtual DOM, DOM diffing, and component lifecycle methods.

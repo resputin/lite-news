@@ -92,15 +92,15 @@ const hacky = (function() {
     store.currentStoryHTML.splice(
       index % 30,
       0,
-      `<li value="${index + 1}">${storyHTML}</li>`
+      `<li value="${index + 1}"><div class="story">${storyHTML}</div></li>`
     );
     $('.js-content').html(store.currentStoryHTML);
   }
 
   function generateListItem(story) {
     return `
-      ${story.score} <a href="${story.url}" target="_blank">${story.title}</a>
-      <p>${story.descendants} comments Posted by: ${story.by}</p>
+      <p class="score">${story.score}</p><a href="${story.url}" target="_blank"><p class="title">${story.title}</p>
+      <p>${story.descendants} comments Posted by: ${story.by}</p></a>
     `;
   }
 
